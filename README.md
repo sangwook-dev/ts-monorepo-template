@@ -63,8 +63,7 @@ AI 에이전트가 작업해도 구조가 무너지지 않는 TypeScript 모노�
 - 엄격 타입(`noUncheckedIndexedAccess`·`exactOptionalPropertyTypes` 등) — `packages/tsconfig/base.json`
 - 결정 기록(ADR) 색인이 AGENTS.md와 맞는다 — 테스트 + 커밋 hook
 - 문서·주석에 백틱으로 적은 저장소 경로(`apps/`·`packages/`·`docs/` 등)가 실제로 있다 — 파일을 옮기면 가리키는 글이 낡지 않게, 테스트
-- 문서·주석이 가리킨 결정("ADR 번호")이 있고 대체되지 않았다, 백틱으로 적은 `pnpm` 명령이 돈다 — 결정을 대체하거나 스크립트
-  이름을 바꾸면 가리키는 글이 낡지 않게, 테스트
+- 문서·주석이 가리킨 결정("ADR 번호")이 있고 대체되지 않았다 — 결정을 대체하면 가리키는 글이 낡지 않게, 테스트
 - 커밋 전 포매팅, 푸시 전 전체 검사 — lefthook
 
 <!-- module:api:start -->
@@ -78,7 +77,7 @@ AI 에이전트가 작업해도 구조가 무너지지 않는 TypeScript 모노�
 - `packages/domain` — 엔티티·순수 규칙(zod만 의존). 서버와 클라이언트가 같이 쓴다
 - `packages/eslint-config` — 공통 lint 규칙 + `layers()` 경계 헬퍼 + 가드 테스트
 - `packages/tsconfig` — 공통 tsconfig 프리셋
-- `packages/docs-index` — `docs/adr` → AGENTS.md 결정 색인 생성·검사, 문서·주석이 가리키는 것(저장소 경로·ADR 번호·`pnpm` 명령) 검사
+- `packages/docs-index` — `docs/adr` → AGENTS.md 결정 색인 생성·검사, 문서·주석이 가리키는 것(저장소 경로·ADR 번호) 검사
 - `docs/adr` — 설계 결정 기록
 
 <!-- module:claude:start -->

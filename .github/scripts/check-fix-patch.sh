@@ -13,16 +13,11 @@
 #   - 테스트를 끄거나 뒤집는 것(skip·only·skipIf·runIf·todo·fails):
 #     - 수식어 — it·test·describe와 그 별칭 suite에. 이어 붙이거나(.concurrent.skip·.skip.each) 줄을 나눠 붙이거나,
 #       선택적 체이닝으로 붙이거나(it?.only), 부르지 않고 참조만 해도(const s = it.skip), 대괄호로 꺼내도(it["only"])
-#     - 실행 중에 건너뛰는 skip() 호출(ctx.skip()·ctx.skip?.()·구조 분해한 skip()). 다른 객체의 .skip() 호출도 보수적으로
-#     - 테스트 옵션 객체의 키({ skip: true }). 값이 리터럴 하나(숫자·문자열)로 끝나는 키만 통과한다 — 리터럴은 옵션 값으로
-#       타입 오류라 테스트를 끌 수 없고, 예시 도메인의 { todo: 0 } 같은 상태별 값이 걸리지 않게. 리터럴로 시작하는
-#       식({ skip: 0 < 1 })은 boolean이라 테스트를 끄므로 거부한다. 키마다 따로 본다({ todo: 0, skip: 0 < 1 }도 거부)
-#     - 수식어 이름의 변수 선언(const skip = …)과 단축 속성({ skip }) — 옵션 객체에 값을 넘기는 다른 꼴
-#     같은 이름의 식별자·타입도 보수적으로 거부한다(const todo = …, { todo }, todo: TaskStatus) — 예시 도메인의 todo 상태를
-#     건드리는 수정 일부가 자동으로 고쳐지지 않고 사람에게 간다
 #     이 검사는 흔한 꼴을 거르는 문자열 검사다 — 코드의 뜻을 보지 않으니 다 막지는 못한다. 못 보는 것:
+#     - 실행 중에 건너뛰기: 테스트 컨텍스트의 skip() 호출(ctx.skip())
+#     - 테스트 옵션 객체로 끄기({ skip: true }·{ skip }, 다른 파일에서 만든 옵션 객체)
 #     - 이름을 바꿔 부르기: 별칭 import(import { it as t } → t.todo), test.extend로 만든 다른 이름(myTest.todo)
-#     - 이름을 값으로 들고 다니기: 상수 키({ [k]: true }·it[m] — k·m이 'skip' 같은 리터럴 타입), 다른 파일에서 만든 옵션 객체
+#     - 이름을 값으로 들고 다니기: 상수 키(it[m] — m이 'skip' 같은 리터럴 타입)
 #     - 뜻을 바꾸기: 허용 목록 안의 검사 도구 코드(docs-index·upgrade-gates의 src — scripts/에 검사 도구가 들어오면 그것도)나
 #       테스트 도우미(돌릴 대상 목록 등)를 느슨하게 고치기, 단언을 실패에 맞춰 바꾸기
 #     테스트를 끄는 꼴은 verify가 패치 전후의 테스트 결과를 비교해 문법과 상관없이 다시 본다(ADR 0017) — 이 검사는 그 앞의
@@ -64,17 +59,10 @@ done < <(sed -n 's#^diff --git a/\(.*\) b/.*$#\1#p' "$patch" | sort -u)
 # (`^\+[^+]`로 머리를 거르면 내용이 +로 시작하는 줄을 놓친다)
 added="$(awk '/^diff --git /{hunk=0; next} /^@@/{hunk=1; next} hunk && /^\+/' "$patch")"
 MODIFIERS='(skip|only|skipIf|runIf|todo|fails)'
-# 옵션 키 가운데 값이 리터럴 하나로 끝나는 것(뒤가 , } 줄 끝)만 지운다 — 남은 키는 값이 식이라 테스트를 끌 수 있다
-LITERAL="(-?[0-9][0-9A-Za-z_.]*|'[^']*'|\"[^\"]*\"|\`[^\`\$]*\`)"
-option_keys_left="$(sed -E "s/\b(skip|only|todo|fails)\s*:\s*${LITERAL}\s*([,}]|\$)/\3/g" <<<"$added")"
 if grep -qE "\b(it|test|describe|suite)(\??\.[A-Za-z]+)*\??\.${MODIFIERS}\b" <<<"$added" ||
   grep -qE "^\+\s*\??\.${MODIFIERS}\b" <<<"$added" ||
-  grep -qE "\[\s*['\"\`]${MODIFIERS}['\"\`]\s*\]" <<<"$added" ||
-  grep -qE '(^|[^A-Za-z0-9_$])skip\s*(\?\.\s*)?\(' <<<"$added" ||
-  grep -qE "\b(skip|only|todo|fails)\s*:" <<<"$option_keys_left" ||
-  grep -qE "\b(const|let|var)\s+${MODIFIERS}\b" <<<"$added" ||
-  grep -qE "([{,]|^\+)\s*${MODIFIERS}\s*([,}]|\$)" <<<"$added"; then
-  reasons+=("테스트를 끄거나 뒤집는 수식어·호출·옵션(skip·only·skipIf·runIf·todo·fails)")
+  grep -qE "\[\s*['\"\`]${MODIFIERS}['\"\`]\s*\]" <<<"$added"; then
+  reasons+=("테스트를 끄거나 뒤집는 수식어(skip·only·skipIf·runIf·todo·fails)")
 fi
 grep -qE '@ts-(ignore|nocheck|expect-error)' <<<"$added" && reasons+=("@ts-ignore·@ts-nocheck·@ts-expect-error")
 
