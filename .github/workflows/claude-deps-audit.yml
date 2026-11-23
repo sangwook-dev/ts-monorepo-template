@@ -12,10 +12,8 @@ name: Claude deps audit
 
 on:
   schedule:
-    # 매주 월요일 09:07 KST (00:07 UTC) — 정시는 GitHub 스케줄러가 몰려 지연·누락이 잦아 몇 분 비킨다.
-    # 스케줄 실행의 actor는 이 cron 줄을 마지막으로 고친 사용자다. 그 계정명이 바뀌면 claude-code-action이
-    # actor를 못 찾아 봇으로 보고 막는다(2026-11 Han5991 → sangwook-dev 때 실제로 났다) — 그땐 이 줄을 다시 고친다.
-    - cron: '7 0 * * 1'
+    # 매주 월요일 09:00 KST (00:00 UTC)
+    - cron: '0 0 * * 1'
   workflow_dispatch:
 
 concurrency:
