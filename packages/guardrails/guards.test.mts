@@ -194,6 +194,16 @@ describe('도메인', () => {
     expect(await ruleIds(DOMAIN, code)).toContain('no-restricted-syntax');
   });
 
+  it.each([
+    ['최상위 클래스', 'class Registry {}\nexport const r = Registry;\n'],
+    ['내보내는 클래스', 'export class Registry {}\n'],
+    ['기본으로 내보내는 클래스', 'export default class Registry {}\n'],
+  ])('도메인 모듈에 둔 %s는 클래스 규칙 하나만 알린다', async (_, code) => {
+    expect(
+      (await ruleIds(DOMAIN, code)).filter(id => id === 'no-restricted-syntax'),
+    ).toEqual(['no-restricted-syntax']);
+  });
+
   // 오버로드 시그니처는 공통 규칙이 막는다(ADR 0020) — 여기서는 함수 선언만 본다
   it('양성 대조 — 선언(상수·함수·기본 내보내기 함수·타입·전역 타입·다시 내보내기)은 통과한다', async () => {
     expect(

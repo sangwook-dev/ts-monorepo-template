@@ -507,6 +507,7 @@ export function domainLayers(
  * 그 전제를 지키는 규칙(허용 목록):
  * - 모듈 최상위 문장은 import·export와 변수·함수·타입 선언, 타입만인 `declare global`·`declare module`뿐이다.
  * - 클래스는 쓰지 않는다(선언·식 모두) — static 블록이 불러올 때 돈다. enum도 불러올 때 객체를 만든다.
+ *   클래스는 클래스 규칙 하나만 알린다 — 최상위·내보내기 허용 목록에 클래스를 넣어 같은 코드에 두 번 알리지 않는다.
  * - 상수의 초기값을 즉시 실행 함수로 만들지 않는다.
  * 초기값 안에서 부르는 함수가 값을 만들기만 하는지(전역을 바꾸거나 등록하지 않는지)는 이 규칙이 못 본다.
  */
@@ -515,19 +516,19 @@ export const noTopLevelEffects: Linter.RulesRecord = {
     'error',
     {
       selector:
-        'Program > :not(ImportDeclaration, ExportNamedDeclaration, ExportDefaultDeclaration, ExportAllDeclaration, VariableDeclaration, FunctionDeclaration, TSDeclareFunction, TSTypeAliasDeclaration, TSInterfaceDeclaration, TSModuleDeclaration[declare=true])',
+        'Program > :not(ImportDeclaration, ExportNamedDeclaration, ExportDefaultDeclaration, ExportAllDeclaration, VariableDeclaration, FunctionDeclaration, TSDeclareFunction, TSTypeAliasDeclaration, TSInterfaceDeclaration, TSModuleDeclaration[declare=true], ClassDeclaration)',
       message:
         '도메인 모듈의 최상위에는 선언만 둔다 — 패키지가 부작용 없는 코드로 알려진다(sideEffects: false). 실행할 일은 함수 안에 둔다.',
     },
     {
       selector:
-        'Program > ExportNamedDeclaration > :not(VariableDeclaration, FunctionDeclaration, TSDeclareFunction, TSTypeAliasDeclaration, TSInterfaceDeclaration, ExportSpecifier, Literal)',
+        'Program > ExportNamedDeclaration > :not(VariableDeclaration, FunctionDeclaration, TSDeclareFunction, TSTypeAliasDeclaration, TSInterfaceDeclaration, ClassDeclaration, ExportSpecifier, Literal)',
       message:
         '도메인이 내보내는 것은 변수·함수·타입 선언만이다 — enum은 불러올 때 객체를 만든다(sideEffects: false).',
     },
     {
       selector:
-        'Program > ExportDefaultDeclaration > :not(FunctionDeclaration, Identifier)',
+        'Program > ExportDefaultDeclaration > :not(FunctionDeclaration, ClassDeclaration, Identifier)',
       message:
         '도메인이 기본으로 내보내는 것은 함수 선언이나 이미 선언한 이름뿐이다(sideEffects: false).',
     },

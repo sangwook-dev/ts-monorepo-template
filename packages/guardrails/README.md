@@ -25,5 +25,22 @@ export default [
 ];
 ```
 
-저장소마다 다른 것(레이어·모듈 표)은 그 저장소의 설정 파일에 두고, 공통 규칙은 고치거나 끄지 않는다 — 맞지 않으면 이 패키지에서
-고친다.
+저장소마다 다른 것(레이어·모듈 표)은 그 저장소의 설정 파일에 둔다. 공통 규칙은 끄거나 느슨하게 하지 않는다 — 맞지 않으면 이
+패키지에서 고친다. 저장소가 공통 규칙보다 엄격하게 새로 정한 규칙은 그 저장소 설정의 표 하나에 모아 `base` 뒤에 건다(저장소가 새로
+정한 규칙이 이긴다):
+
+```ts
+// 공통 규칙보다 엄격하게 새로 정한 규칙 — base 뒤에 건다
+const STRICTER_THAN_SHARED = {
+  // 옵션까지 적는다 — 심각도만 적으면 ESLint가 base의 옵션(`_` 이름 허용)을 그대로 둔다
+  '@typescript-eslint/no-unused-vars': ['error', {}],
+};
+
+export default [
+  // 더 엄격한 프리셋(typescript-eslint의 strictTypeChecked 등)은 base 앞에 둔다 — 뒤에 두면 프리셋이 base가 고른 옵션(단언 금지·
+  // `@ts-expect-error` 금지)을 기본값으로 되돌린다
+  ...tseslint.configs.strictTypeChecked,
+  ...base,
+  { rules: STRICTER_THAN_SHARED },
+];
+```
