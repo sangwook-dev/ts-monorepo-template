@@ -5,6 +5,7 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -152,7 +153,8 @@ function runCli(before: string, after: string, patchedFiles: string[]) {
 }
 
 beforeAll(() => {
-  work = mkdtempSync(path.join(tmpdir(), 'ci-fix-guard-'));
+  // vitest는 root를 실제 경로로 푼다 — macOS의 tmpdir()(/var/…)은 /private/var/…의 심링크라 그대로 두면 root와 어긋난다
+  work = realpathSync(mkdtempSync(path.join(tmpdir(), 'ci-fix-guard-')));
   const guard = path.join(work, 'guard');
   cpSync(
     path.join(PACKAGE_DIR, 'package.json'),
