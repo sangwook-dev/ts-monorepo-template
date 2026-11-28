@@ -25,5 +25,33 @@ export default [
 ];
 ```
 
-저장소마다 다른 것(레이어·모듈 표)은 그 저장소의 설정 파일에 두고, 공통 규칙은 고치거나 끄지 않는다 — 맞지 않으면 이 패키지에서
-고친다.
+저장소마다 다른 것(레이어·모듈 표)은 그 저장소의 설정 파일에 둔다. 공통 규칙은 끄거나 느슨하게 하지 않는다 — 맞지 않으면 이
+패키지에서 고친다. 저장소가 공통 규칙보다 엄격하게 새로 정한 규칙은 그 저장소 설정의 표 하나에 모아 `base` 뒤에 건다(저장소가 새로
+정한 규칙이 이긴다):
+
+```ts
+import type { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
+import { base } from 'lint-guardrails';
+import tseslint from 'typescript-eslint';
+
+// 공통 규칙보다 엄격하게 새로 정한 규칙 — base 뒤에 건다
+const STRICTER_THAN_SHARED = {
+  // 옵션까지 적는다 — 심각도만 적으면 ESLint가 base의 옵션(`_` 이름 허용)을 그대로 둔다
+  '@typescript-eslint/no-unused-vars': ['error', {}],
+} satisfies Linter.RulesRecord;
+
+// extends는 defineConfig 안에서만 풀린다
+export default defineConfig([
+  // 더 엄격한 프리셋(typescript-eslint의 strictTypeChecked·stylisticTypeChecked)은 base 앞에 둔다 — 뒤에 두면 프리셋이 base가
+  // 고른 옵션을 프리셋 값으로 되돌린다(strict는 `@ts-expect-error` 금지, stylistic은 단언 금지). base가 타입 정보를 켜는 파일(선언 파일을 뺀 TS)로 범위를 맞춘다 — 범위 없이
+  // 펼치면 JS 파일·선언 파일에도 타입 정보 규칙이 켜져 lint가 멈춘다
+  {
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    ignores: ['**/*.d.{ts,mts,cts}', '**/*.d.*.ts'],
+    extends: [tseslint.configs.strictTypeChecked],
+  },
+  ...base,
+  { rules: STRICTER_THAN_SHARED },
+]);
+```
