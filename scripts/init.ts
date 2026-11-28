@@ -243,6 +243,18 @@ function useReleasedGuardrails() {
   if (typeof version !== 'string') {
     fail(`${GUARDRAILS_DIR}/package.json에 version이 없다`);
   }
+  // 판을 올린 머지 뒤 배포 잡(publish-guardrails.yml)이 끝나기 전이거나 실패했으면 npm에 그 판이 없다 — 설치가 알 수 없는
+  // 오류로 멈추기 전에 이유를 말하고 멈춘다
+  try {
+    execFileSync('npm', ['view', `${GUARDRAILS_NAME}@${version}`, 'version'], {
+      cwd: ROOT,
+      stdio: 'ignore',
+    });
+  } catch {
+    fail(
+      `${GUARDRAILS_NAME}@${version}이 npm에 아직 없다 — 템플릿의 배포 잡(publish-guardrails.yml)이 끝난 뒤 다시 실행한다`,
+    );
+  }
   const manifests = execFileSync('git', ['ls-files', '*package.json'], {
     cwd: ROOT,
     encoding: 'utf8',

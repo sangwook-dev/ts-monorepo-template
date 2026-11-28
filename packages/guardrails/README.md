@@ -10,7 +10,7 @@
 
 ## 쓰기
 
-ESLint 설정은 TypeScript여야 하고 `jiti`가 있어야 한다(이 패키지는 빌드하지 않은 `index.mts`를 낸다).
+배포 판은 JS(`dist/index.mjs`)와 타입(`dist/index.d.mts`)이라 설정 파일은 JS·TS 어느 쪽이든 된다. 설정 파일을 TypeScript(`eslint.config.ts`)로 쓰면 ESLint가 그것을 읽을 `jiti`가 필요하다.
 
 ```ts
 // eslint.config.ts

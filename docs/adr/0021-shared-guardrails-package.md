@@ -24,7 +24,8 @@ status: accepted
   폴더(`process.cwd()`)에서 찾는다. `link:`·`file:`로 다른 저장소에 연결해 쓰는 것은 지원하지 않는다 — 그때는 tsconfig 기준이 이
   저장소가 된다.
 - 배포 판은 JS(`dist/index.mjs`)와 타입(`dist/index.d.mts`)이다 — `pnpm pack`이 `prepack`으로 빌드하고 `publishConfig.exports`가
-  그쪽을 가리킨다. 템플릿 안에서는 소스(`index.mts`)를 그대로 쓴다. Node는 `node_modules` 안의 TypeScript를 타입 제거로 읽지 않아,
+  그쪽을 가리킨다. 템플릿 안에서는 소스(`index.mts`)를 그대로 쓴다. `init`은 적어 넣을 판이 npm에 있는지 먼저 보고, 없으면(판을
+  올린 머지 뒤 배포 잡이 끝나기 전이거나 실패했을 때) 이유를 말하고 멈춘다. Node는 `node_modules` 안의 TypeScript를 타입 제거로 읽지 않아,
   소스를 그대로 낸 0.1.0은 소비 저장소에서 설정을 불러오다 멈췄다(`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`).
 - 이 패키지만 pnpm `minimumReleaseAge`(갓 나온 판 설치 보류, ADR 0006)의 예외다 — 우리가 템플릿 `main`에서 provenance와 함께
   배포하고, `init`이 그때의 판을 정확히 적어 넣어서 막으면 배포 직후 하루 동안 템플릿으로 저장소를 만들 수 없다. 소비 저장소도
@@ -38,8 +39,8 @@ status: accepted
   필요 없다. GitHub Packages는 공개 패키지도 설치에 토큰이 들고 그 토큰은 classic PAT만 된다(Actions 안의 `GITHUB_TOKEN`은
   예외) — Actions 밖(배포 빌드·Renovate)에서 만료되는 토큰을 관리해야 한다
   (https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry, 2026-11-28 확인).
-- git 하위 폴더 의존성은 `catalog:` 표기를 풀지 못해 설치되지 않았다(pnpm 12.6, 2026-11-28 확인). `pnpm pack`한 tarball은 설치되고
-  jiti가 `.mts`를 읽는 것을 단일 패키지 저장소에서 확인했다.
+- git 하위 폴더 의존성은 `catalog:` 표기를 풀지 못해 설치되지 않았다(pnpm 12.6, 2026-11-28 확인). `pnpm pack`한 tarball은 설치되고,
+  init으로 만든 저장소가 npm의 0.1.1로 lint·타입·테스트를 통과하는 것을 확인했다.
 
 ## 끝과 손절선
 
