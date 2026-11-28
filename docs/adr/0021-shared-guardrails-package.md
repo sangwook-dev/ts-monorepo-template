@@ -23,8 +23,12 @@ status: accepted
   패키지에서, `base`의 `tsconfigRootDir`(ADR 0019)는 워크스페이스 안에서는 이 패키지 위치에서, 설치된 패키지로 쓰면 ESLint를 띄운
   폴더(`process.cwd()`)에서 찾는다. `link:`·`file:`로 다른 저장소에 연결해 쓰는 것은 지원하지 않는다 — 그때는 tsconfig 기준이 이
   저장소가 된다.
-- 패키지는 빌드하지 않은 `index.mts`를 그대로 낸다. 소비 저장소의 ESLint 설정은 TypeScript(`eslint.config.ts`·`.mts`)여야 하고
-  `jiti`가 있어야 한다 — Node는 `node_modules` 안의 TypeScript를 타입 제거로 읽지 않는다.
+- 배포 판은 JS(`dist/index.mjs`)와 타입(`dist/index.d.mts`)이다 — `pnpm pack`이 `prepack`으로 빌드하고 `publishConfig.exports`가
+  그쪽을 가리킨다. 템플릿 안에서는 소스(`index.mts`)를 그대로 쓴다. Node는 `node_modules` 안의 TypeScript를 타입 제거로 읽지 않아,
+  소스를 그대로 낸 0.1.0은 소비 저장소에서 설정을 불러오다 멈췄다(`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`).
+- 이 패키지만 pnpm `minimumReleaseAge`(갓 나온 판 설치 보류, ADR 0006)의 예외다 — 우리가 템플릿 `main`에서 provenance와 함께
+  배포하고, `init`이 그때의 판을 정확히 적어 넣어서 막으면 배포 직후 하루 동안 템플릿으로 저장소를 만들 수 없다. 소비 저장소도
+  `pnpm-workspace.yaml`의 `minimumReleaseAgeExclude`에 같은 이름을 둔다.
 
 ## 이유
 
