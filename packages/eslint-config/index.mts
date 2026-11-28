@@ -90,6 +90,8 @@ const ROOT_MARKERS = [
   'pnpm-lock.yaml',
   'package-lock.json',
   'yarn.lock',
+  'bun.lock',
+  'bun.lockb',
 ];
 
 /**
@@ -107,14 +109,16 @@ export function repoRootFrom(start: string): string | undefined {
 }
 
 /**
- * tsconfig를 찾는 기준 폴더(아래 `tsconfigRootDir`) — 이 설정을 쓰는 저장소의 루트. `base`는 패키지 경로를 받지 않으므로 ESLint를
- * 띄운 폴더(`process.cwd()`, 소비 저장소 쪽)에서 먼저 찾고, 없으면 이 파일 위치에서 찾는다. 레이어(`layers`)는 이 값을 쓰지
- * 않고 자기 패키지에서 다시 찾는다
+ * tsconfig를 찾는 기준 폴더(아래 `tsconfigRootDir`, ADR 0019) — 이 설정을 쓰는 저장소의 루트. 워크스페이스 안에서 쓰면(이 파일이
+ * `node_modules` 밖이다) 이 파일 위치에서 찾아 프로세스와 상관없이 늘 같은 값이다. 설치된 패키지로 쓰면 이 파일 위치는 소비 저장소를
+ * 말해 주지 않으므로(store가 저장소 밖일 수 있다) ESLint를 띄운 폴더(`process.cwd()`)에서 찾는다. 레이어(`layers`)는 이 값을
+ * 쓰지 않고 자기 패키지에서 다시 찾는다
  */
-const TSCONFIG_ROOT =
-  repoRootFrom(process.cwd()) ??
-  repoRootFrom(import.meta.dirname) ??
-  process.cwd();
+const TSCONFIG_ROOT = import.meta.dirname.includes(
+  `${path.sep}node_modules${path.sep}`,
+)
+  ? (repoRootFrom(process.cwd()) ?? process.cwd())
+  : (repoRootFrom(import.meta.dirname) ?? import.meta.dirname);
 
 /**
  * 공통 규칙. 각 앱·패키지는 자기 경로의 eslint.config.mts에서 `base`를 펼치고
@@ -240,13 +244,16 @@ function relativeImportBan() {
 // 같은 element 안은 자유이고, 프로덕션은 테스트 파일을 import할 수 없으며, 테스트는 무엇이든 import한다.
 
 /**
- * 워크스페이스 패키지 하나가 element 하나다 — 새 패키지가 생겨도 누가 열 수 있는지는 layers에 적어야 열린다. `packages/`가 없는
- * 저장소(패키지 하나뿐인 소비 저장소)는 빈 목록이다. 불러올 때가 아니라 `layers()`를 부를 때 읽는다 — 불러오기만 하는 저장소가
- * 없는 폴더를 읽다 멈추지 않게
+ * 워크스페이스 패키지 하나가 element 하나다 — 새 패키지가 생겨도 누가 열 수 있는지는 layers에 적어야 열린다. 워크스페이스
+ * (`pnpm-workspace.yaml`)의 `packages/`만 읽는다 — 패키지 하나뿐인 소비 저장소에 우연히 있는 `packages/` 폴더(산출물 등)를
+ * 패키지로 보지 않게. 없으면 빈 목록이다. 불러올 때가 아니라 `layers()`를 부를 때 읽는다 — 불러오기만 하는 저장소가 없는 폴더를
+ * 읽다 멈추지 않게
  */
 function workspacePackagesOf(root: string): string[] {
   const dir = path.join(root, 'packages');
-  if (!existsSync(dir)) return [];
+  if (!existsSync(path.join(root, 'pnpm-workspace.yaml')) || !existsSync(dir)) {
+    return [];
+  }
   return (
     readdirSync(dir, { withFileTypes: true })
       // 숨김 폴더(도구가 만드는 .claude/ 등)는 패키지가 아니다

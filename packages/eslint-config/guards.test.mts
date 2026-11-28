@@ -641,6 +641,29 @@ describe('설정을 쓰는 저장소의 루트', () => {
     ]);
   });
 
+  it('워크스페이스가 아닌 저장소는 packages/ 폴더가 있어도 워크스페이스 패키지로 보지 않고, 그 패키지를 적으면 멈춘다', () => {
+    const repo = tempRepo(['pnpm-lock.yaml', 'packages/out/x.ts']);
+    const [config] = layers(repo, [{ type: 'a', pattern: 'src/a' }]);
+    expect(config?.settings?.['boundaries/elements']).toEqual([
+      { type: 'a', pattern: ['src/a'] },
+    ]);
+    expect(() =>
+      layers(repo, [{ type: 'a', pattern: 'src/a', packages: ['out'] }]),
+    ).toThrow('없는 워크스페이스 패키지: out');
+  });
+
+  it('루트 표지가 어디에도 없으면 찾지 못하고, 레이어는 그 패키지를 루트로 본다', ({
+    skip,
+  }) => {
+    const alone = tempRepo([]);
+    if (repoRootFrom(path.dirname(alone)) !== undefined) {
+      skip('임시 폴더의 조상에 루트 표지가 있다');
+    }
+    expect(repoRootFrom(alone)).toBeUndefined();
+    const [config] = layers(alone, [{ type: 'a', pattern: 'src/a' }]);
+    expect(config?.settings?.['boundaries/root-path']).toBe(alone);
+  });
+
   it('모노레포의 하위 패키지 — 레이어 폴더를 저장소 루트 기준 경로로 가리킨다', () => {
     const repo = tempRepo(['pnpm-workspace.yaml', 'packages/shared/x.ts']);
     const [config] = layers(path.join(repo, 'apps', 'web'), [
