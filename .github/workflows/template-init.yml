@@ -32,10 +32,18 @@ jobs:
       - name: Setup workspace
         uses: ./.github/actions/setup
 
+      # 이 PR의 공유 lint 규칙을 시험한다 — 판을 올린 PR은 머지 뒤에야 npm에 배포되므로, 배포될 것과 같은 tarball을 만들어
+      # init이 npm의 판 대신 그것을 쓰게 한다(ADR 0021). 배포 판(빌드한 JS)이 소비 저장소에서 불러와지는지도 여기서 본다
+      - name: Pack lint-guardrails
+        working-directory: packages/guardrails
+        run: pnpm pack --pack-destination "$RUNNER_TEMP/guardrails"
+
       - name: Init
         env:
           WITHOUT: ${{ matrix.without }}
-        run: pnpm init:project demo-app "--without=${WITHOUT}"
+        run: |
+          GUARDRAILS_TARBALL="$(ls "$RUNNER_TEMP"/guardrails/lint-guardrails-*.tgz)" \
+            pnpm init:project demo-app "--without=${WITHOUT}"
 
       - name: No placeholders left
         run: |

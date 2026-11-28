@@ -231,8 +231,17 @@ function pinWorkspaceDependency(
   );
 }
 
-/** 만든 저장소가 템플릿 안의 공유 lint 패키지 대신 npm에 배포된 같은 판에 의존하게 한다 */
-function useReleasedGuardrails() {
+/**
+ * 만든 저장소가 의존할 공유 lint 패키지의 판. 보통은 템플릿의 `version` 그대로이고, 그 판이 npm에 있는지 먼저 본다 — 판을 올린 머지
+ * 뒤 배포 잡(publish-guardrails.yml)이 끝나기 전이거나 실패했으면 없다. 아무것도 지우기 전에 부르므로, 멈춰도 저장소가 반쯤
+ * 바뀌지 않는다. 템플릿 CI는 `GUARDRAILS_TARBALL`(그 PR에서 `pnpm pack`한 tarball)을 주어 아직 배포되지 않은 그 PR의 규칙을 시험한다
+ */
+function guardrailsSpec(): string {
+  const tarball = process.env['GUARDRAILS_TARBALL'];
+  if (tarball !== undefined && tarball !== '') {
+    if (!existsSync(tarball)) fail(`GUARDRAILS_TARBALL이 없다: ${tarball}`);
+    return `file:${path.resolve(tarball)}`;
+  }
   const manifest: unknown = JSON.parse(
     readFileSync(path.join(ROOT, GUARDRAILS_DIR, 'package.json'), 'utf8'),
   );
@@ -243,18 +252,26 @@ function useReleasedGuardrails() {
   if (typeof version !== 'string') {
     fail(`${GUARDRAILS_DIR}/package.json에 version이 없다`);
   }
-  // 판을 올린 머지 뒤 배포 잡(publish-guardrails.yml)이 끝나기 전이거나 실패했으면 npm에 그 판이 없다 — 설치가 알 수 없는
-  // 오류로 멈추기 전에 이유를 말하고 멈춘다
   try {
     execFileSync('npm', ['view', `${GUARDRAILS_NAME}@${version}`, 'version'], {
       cwd: ROOT,
-      stdio: 'ignore',
+      stdio: ['ignore', 'ignore', 'pipe'],
     });
-  } catch {
+  } catch (error) {
+    const stderr =
+      error instanceof Error && 'stderr' in error ? String(error.stderr) : '';
     fail(
-      `${GUARDRAILS_NAME}@${version}이 npm에 아직 없다 — 템플릿의 배포 잡(publish-guardrails.yml)이 끝난 뒤 다시 실행한다`,
+      stderr.includes('E404')
+        ? `${GUARDRAILS_NAME}@${version}이 npm에 아직 없다 — 템플릿의 배포 잡(publish-guardrails.yml)이 끝난 뒤 다시 실행한다`
+        : `npm에서 ${GUARDRAILS_NAME}@${version}을 확인하지 못했다:
+${stderr || String(error)}`,
     );
   }
+  return version;
+}
+
+/** 만든 저장소가 템플릿 안의 공유 lint 패키지 대신 `spec`(배포된 같은 판)에 의존하게 한다 */
+function useReleasedGuardrails(spec: string) {
   const manifests = execFileSync('git', ['ls-files', '*package.json'], {
     cwd: ROOT,
     encoding: 'utf8',
@@ -268,7 +285,7 @@ function useReleasedGuardrails() {
           json[field] = pinWorkspaceDependency(
             json[field],
             GUARDRAILS_NAME,
-            version,
+            spec,
           );
         }
       }
@@ -318,6 +335,7 @@ function trackedTextFiles(): string[] {
 }
 
 const args = parseArgs(process.argv.slice(2));
+const guardrails = guardrailsSpec();
 const without = closure(
   args.without ?? (process.stdin.isTTY ? await ask() : new Set()),
 );
@@ -339,7 +357,7 @@ for (const module of [
   }
 }
 
-useReleasedGuardrails();
+useReleasedGuardrails(guardrails);
 gitRemove(TEMPLATE_ONLY);
 editJson('package.json', json => {
   json['scripts'] = dropKeys(json['scripts'], ['init:project']);
