@@ -43,8 +43,8 @@ const STRICTER_THAN_SHARED = {
 
 // extends는 defineConfig 안에서만 풀린다
 export default defineConfig([
-  // 더 엄격한 프리셋(typescript-eslint의 strictTypeChecked 등)은 base 앞에 둔다 — 뒤에 두면 프리셋이 base가 고른 옵션(단언 금지·
-  // `@ts-expect-error` 금지)을 기본값으로 되돌린다. base가 타입 정보를 켜는 파일(선언 파일을 뺀 TS)로 범위를 맞춘다 — 범위 없이
+  // 더 엄격한 프리셋(typescript-eslint의 strictTypeChecked·stylisticTypeChecked)은 base 앞에 둔다 — 뒤에 두면 프리셋이 base가
+  // 고른 옵션을 프리셋 값으로 되돌린다(strict는 `@ts-expect-error` 금지, stylistic은 단언 금지). base가 타입 정보를 켜는 파일(선언 파일을 뺀 TS)로 범위를 맞춘다 — 범위 없이
   // 펼치면 JS 파일·선언 파일에도 타입 정보 규칙이 켜져 lint가 멈춘다
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
