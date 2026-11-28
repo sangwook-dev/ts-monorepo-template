@@ -38,12 +38,17 @@ vi.setConfig({ testTimeout: 60_000 });
  * 다른 검사가 볼 수 있다.
  */
 async function ruleIds(file: string, code: string): Promise<string[]> {
+  return (await ruleMessages(file, code)).map(error => error.rule);
+}
+
+/** `ruleIds`와 같고, 규칙 이름과 함께 알린 말도 준다 — 같은 규칙 이름 안에서 어느 선택자가 알렸는지 볼 때 */
+async function ruleMessages(file: string, code: string): Promise<LintError[]> {
   const filePath = path.join(ROOT, file);
   if (!existsSync(filePath)) {
     throw new Error(`탐침은 저장소에 있는 파일 경로로 넣는다: ${file}`);
   }
   try {
-    return await errorRuleIds(filePath, code);
+    return await errorMessages(filePath, code);
   } finally {
     await eslint.lintText(readFileSync(filePath, 'utf8'), { filePath });
   }
@@ -61,13 +66,28 @@ async function declarationFileRuleIds(
   return errorRuleIds(path.join(ROOT, file), code);
 }
 
+interface LintError {
+  readonly rule: string;
+  readonly message: string;
+}
+
 /** 오류(severity 2)의 규칙 이름 — 파싱 오류처럼 규칙이 없는 오류는 `(fatal) 메시지`로 */
 async function errorRuleIds(filePath: string, code: string): Promise<string[]> {
+  return (await errorMessages(filePath, code)).map(error => error.rule);
+}
+
+async function errorMessages(
+  filePath: string,
+  code: string,
+): Promise<LintError[]> {
   const [result] = await eslint.lintText(code, { filePath });
   if (!result) throw new Error(`lint 결과가 없다: ${filePath}`);
   return result.messages
     .filter(m => m.severity === 2)
-    .map(m => m.ruleId ?? `(fatal) ${m.message}`);
+    .map(m => ({
+      rule: m.ruleId ?? `(fatal) ${m.message}`,
+      message: m.message,
+    }));
 }
 
 const FILE_KINDS = {
@@ -199,9 +219,14 @@ describe('도메인', () => {
     ['내보내는 클래스', 'export class Registry {}\n'],
     ['기본으로 내보내는 클래스', 'export default class Registry {}\n'],
   ])('도메인 모듈에 둔 %s는 클래스 규칙 하나만 알린다', async (_, code) => {
+    const syntax = (await ruleMessages(DOMAIN, code)).filter(
+      error => error.rule === 'no-restricted-syntax',
+    );
     expect(
-      (await ruleIds(DOMAIN, code)).filter(id => id === 'no-restricted-syntax'),
-    ).toEqual(['no-restricted-syntax']);
+      syntax.map(error =>
+        error.message.startsWith('도메인은 클래스를 쓰지 않는다'),
+      ),
+    ).toEqual([true]);
   });
 
   // 오버로드 시그니처는 공통 규칙이 막는다(ADR 0020) — 여기서는 함수 선언만 본다
