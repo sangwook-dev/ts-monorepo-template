@@ -84,22 +84,37 @@ const declarationFile = bannedSyntax(
  */
 const DECLARATION_FILES = ['**/*.d.{ts,mts,cts}', '**/*.d.*.ts'];
 
+/** 저장소 루트에만 있는 파일 — 워크스페이스 설정과 lockfile. 하위 패키지에는 두지 않는다 */
+const ROOT_MARKERS = [
+  'pnpm-workspace.yaml',
+  'pnpm-lock.yaml',
+  'package-lock.json',
+  'yarn.lock',
+];
+
 /**
- * 이 설정을 쓰는 저장소의 루트. 설치된 패키지로 불렸으면(경로에 `node_modules`가 있다) 그 앞이 소비 저장소의 루트고, 워크스페이스
- * 안에서 불렸으면 위로 올라가며 `pnpm-workspace.yaml`이 있는 폴더다(없으면 `dir` 자신). pnpm은 패키지를 루트의
- * `node_modules/.pnpm`에 두고 Node는 심링크를 실제 경로로 풀어 읽으므로, 모노레포의 하위 패키지가 불러도 루트가 나온다.
+ * `start`에서 위로 올라가며 루트 표지 파일이 처음 있는 폴더. 없으면 `undefined`. 경로 문자열(`node_modules`의 자리)로 추측하지
+ * 않는다 — 패키지가 저장소 밖 store(pnpm 전역 가상 store)나 하위 패키지의 `node_modules`에 깔리면 그 추측이 엉뚱한 폴더를 잡는다.
  * 파일 시스템 경로라 import 별칭을 쓸 수 없다
  */
-export function workspaceRootOf(dir: string): string {
-  const installed = dir.indexOf(`${path.sep}node_modules${path.sep}`);
-  if (installed >= 0) return dir.slice(0, installed);
-  for (let at = dir; ; at = path.dirname(at)) {
-    if (existsSync(path.join(at, 'pnpm-workspace.yaml'))) return at;
-    if (path.dirname(at) === at) return dir;
+export function repoRootFrom(start: string): string | undefined {
+  for (let at = start; ; at = path.dirname(at)) {
+    if (ROOT_MARKERS.some(marker => existsSync(path.join(at, marker)))) {
+      return at;
+    }
+    if (path.dirname(at) === at) return undefined;
   }
 }
 
-const WORKSPACE_ROOT = workspaceRootOf(import.meta.dirname);
+/**
+ * tsconfig를 찾는 기준 폴더(아래 `tsconfigRootDir`) — 이 설정을 쓰는 저장소의 루트. `base`는 패키지 경로를 받지 않으므로 ESLint를
+ * 띄운 폴더(`process.cwd()`, 소비 저장소 쪽)에서 먼저 찾고, 없으면 이 파일 위치에서 찾는다. 레이어(`layers`)는 이 값을 쓰지
+ * 않고 자기 패키지에서 다시 찾는다
+ */
+const TSCONFIG_ROOT =
+  repoRootFrom(process.cwd()) ??
+  repoRootFrom(import.meta.dirname) ??
+  process.cwd();
 
 /**
  * 공통 규칙. 각 앱·패키지는 자기 경로의 eslint.config.mts에서 `base`를 펼치고
@@ -129,7 +144,7 @@ export const base = defineConfig([
         projectService: true,
         // tsconfig를 이 디렉터리까지만 찾는다 — 루트로 둬야 패키지의 eslint.config.mts(패키지 tsconfig 밖)를 루트 tsconfig.json으로
         // 찾는다. 명시해야 한 프로세스가 여러 패키지 설정을 읽을 때(가드 테스트·에디터) "tsconfig 루트 후보가 여럿"이라는 거부도 없다
-        tsconfigRootDir: WORKSPACE_ROOT,
+        tsconfigRootDir: TSCONFIG_ROOT,
       },
     },
   },
@@ -260,7 +275,10 @@ export interface Layer {
 }
 
 export function layers(packageDir: string, list: Layer[]) {
-  const workspacePackages = workspacePackagesOf(WORKSPACE_ROOT);
+  // 루트는 이 파일이 깔린 자리가 아니라 레이어를 적는 패키지에서 위로 찾는다 — 그래서 루트는 늘 packageDir 자신이거나 그 위이고,
+  // 레이어 패턴이 `../`로 저장소 밖을 가리켜 아무 파일에도 맞지 않은 채 경계 검사가 조용히 꺼지는 일이 없다
+  const root = repoRootFrom(packageDir) ?? packageDir;
+  const workspacePackages = workspacePackagesOf(root);
   const unknownPackages = list
     .flatMap(l => l.packages ?? [])
     .filter(p => !workspacePackages.includes(p));
@@ -268,7 +286,7 @@ export function layers(packageDir: string, list: Layer[]) {
     throw new Error(`없는 워크스페이스 패키지: ${unknownPackages.join(', ')}`);
   }
 
-  const rel = path.relative(WORKSPACE_ROOT, packageDir);
+  const rel = path.relative(root, packageDir);
   // 패키지가 곧 저장소 루트면(패키지 하나뿐인 소비 저장소) rel이 빈 문자열이다 — 앞에 `/`를 붙이면 아무것도 맞지 않는다
   const anchor = (p: string) => (rel === '' ? p : `${rel}/${p}`);
   const withEntry = list.filter(l => l.entry !== undefined);
@@ -284,7 +302,7 @@ export function layers(packageDir: string, list: Layer[]) {
         },
       },
       // 워크스페이스 패키지는 pnpm 심링크의 realpath(packages/...)로 해석되므로 기준 경로를 워크스페이스 루트로 둔다
-      'boundaries/root-path': WORKSPACE_ROOT,
+      'boundaries/root-path': root,
       'boundaries/elements-single-match': true,
       'boundaries/elements': [
         ...list.map(l => ({

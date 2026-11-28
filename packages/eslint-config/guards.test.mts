@@ -1,13 +1,17 @@
-import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import {
-  layers,
-  moduleFolderProblems,
-  workspaceRootOf,
-} from '@app/eslint-config';
+import { layers, moduleFolderProblems, repoRootFrom } from '@app/eslint-config';
 import { ESLint } from 'eslint';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 
 // lint 설정이 실제로 막는지 확인한다. 규칙을 지우거나 풀면(예외를 넓히면) 여기서 실패한다 —
 // "설정에 적혀 있다"가 아니라 "위반을 넣으면 오류가 난다"를 증명한다.
@@ -608,34 +612,44 @@ describe('타입 정보를 쓰는 규칙', () => {
 });
 
 describe('설정을 쓰는 저장소의 루트', () => {
-  it('워크스페이스 안에서는 pnpm-workspace.yaml이 있는 폴더다', () => {
-    expect(workspaceRootOf(import.meta.dirname)).toBe(ROOT);
+  const made: string[] = [];
+  function tempRepo(files: readonly string[]): string {
+    const dir = mkdtempSync(path.join(tmpdir(), 'eslint-config-root-'));
+    made.push(dir);
+    for (const file of files) {
+      mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      writeFileSync(path.join(dir, file), '');
+    }
+    return dir;
+  }
+  afterAll(() => {
+    for (const dir of made) rmSync(dir, { recursive: true, force: true });
   });
 
-  it('설치된 패키지로 불리면 node_modules 앞이 소비 저장소의 루트다', () => {
-    const consumer = path.join(tmpdir(), 'consumer');
-    const installed = path.join(
-      consumer,
-      'node_modules',
-      '.pnpm',
-      'x@1.0.0',
-      'node_modules',
-      'x',
-    );
-    expect(workspaceRootOf(installed)).toBe(consumer);
+  it('위로 올라가며 루트 표지(워크스페이스 설정·lockfile)가 처음 있는 폴더다', () => {
+    const repo = tempRepo(['pnpm-lock.yaml', 'apps/web/src/a.ts']);
+    expect(repoRootFrom(path.join(repo, 'apps', 'web'))).toBe(repo);
+    expect(repoRootFrom(import.meta.dirname)).toBe(ROOT);
   });
 
-  it('패키지가 곧 저장소 루트면 레이어 폴더를 루트에서 바로 가리킨다 — 패키지 하나뿐인 소비 저장소', () => {
-    const [config] = layers(ROOT, [{ type: 'a', pattern: 'src/a' }]);
-    expect(config?.settings?.['boundaries/elements']).toContainEqual({
-      type: 'a',
-      pattern: ['src/a'],
-    });
+  it('packages/가 없는 단일 패키지 저장소 — 레이어 폴더를 루트에서 바로 가리키고 워크스페이스 패키지 element가 없다', () => {
+    const repo = tempRepo(['pnpm-lock.yaml', 'src/a/x.ts']);
+    const [config] = layers(repo, [{ type: 'a', pattern: 'src/a' }]);
+    expect(config?.settings?.['boundaries/root-path']).toBe(repo);
+    expect(config?.settings?.['boundaries/elements']).toEqual([
+      { type: 'a', pattern: ['src/a'] },
+    ]);
   });
 
-  it('워크스페이스 파일도 node_modules도 없으면 그 폴더 자신이다', () => {
-    const alone = mkdtempSync(path.join(tmpdir(), 'eslint-config-root-'));
-    expect(workspaceRootOf(alone)).toBe(alone);
+  it('모노레포의 하위 패키지 — 레이어 폴더를 저장소 루트 기준 경로로 가리킨다', () => {
+    const repo = tempRepo(['pnpm-workspace.yaml', 'packages/shared/x.ts']);
+    const [config] = layers(path.join(repo, 'apps', 'web'), [
+      { type: 'a', pattern: 'src/a', packages: ['shared'] },
+    ]);
+    expect(config?.settings?.['boundaries/elements']).toEqual([
+      { type: 'a', pattern: ['apps/web/src/a'] },
+      { type: 'pkg:shared', pattern: 'packages/shared' },
+    ]);
   });
 });
 
