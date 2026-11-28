@@ -222,11 +222,9 @@ describe('도메인', () => {
     const syntax = (await ruleMessages(DOMAIN, code)).filter(
       error => error.rule === 'no-restricted-syntax',
     );
-    expect(
-      syntax.map(error =>
-        error.message.startsWith('도메인은 클래스를 쓰지 않는다'),
-      ),
-    ).toEqual([true]);
+    expect(syntax.map(error => error.message)).toEqual([
+      expect.stringMatching(/^도메인은 클래스를 쓰지 않는다/),
+    ]);
   });
 
   // 오버로드 시그니처는 공통 규칙이 막는다(ADR 0020) — 여기서는 함수 선언만 본다

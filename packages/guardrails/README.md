@@ -30,6 +30,8 @@ export default [
 정한 규칙이 이긴다):
 
 ```ts
+import type { Linter } from 'eslint';
+import { defineConfig } from 'eslint/config';
 import { base } from 'lint-guardrails';
 import tseslint from 'typescript-eslint';
 
@@ -37,9 +39,10 @@ import tseslint from 'typescript-eslint';
 const STRICTER_THAN_SHARED = {
   // 옵션까지 적는다 — 심각도만 적으면 ESLint가 base의 옵션(`_` 이름 허용)을 그대로 둔다
   '@typescript-eslint/no-unused-vars': ['error', {}],
-};
+} satisfies Linter.RulesRecord;
 
-export default [
+// extends는 defineConfig 안에서만 풀린다
+export default defineConfig([
   // 더 엄격한 프리셋(typescript-eslint의 strictTypeChecked 등)은 base 앞에 둔다 — 뒤에 두면 프리셋이 base가 고른 옵션(단언 금지·
   // `@ts-expect-error` 금지)을 기본값으로 되돌린다. base가 타입 정보를 켜는 파일(선언 파일을 뺀 TS)로 범위를 맞춘다 — 범위 없이
   // 펼치면 JS 파일·선언 파일에도 타입 정보 규칙이 켜져 lint가 멈춘다
@@ -50,5 +53,5 @@ export default [
   },
   ...base,
   { rules: STRICTER_THAN_SHARED },
-];
+]);
 ```
