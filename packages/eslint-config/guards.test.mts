@@ -1,8 +1,17 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { moduleFolderProblems } from '@app/eslint-config';
+import { layers, moduleFolderProblems, repoRootFrom } from '@app/eslint-config';
 import { ESLint } from 'eslint';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
 
 // lint 설정이 실제로 막는지 확인한다. 규칙을 지우거나 풀면(예외를 넓히면) 여기서 실패한다 —
 // "설정에 적혀 있다"가 아니라 "위반을 넣으면 오류가 난다"를 증명한다.
@@ -599,6 +608,71 @@ describe('타입 정보를 쓰는 규칙', () => {
   // 패키지가 규칙을 끄거나(files 블록) 타입 정보 없이 파싱하면 그 패키지의 파일에서 실패한다
   it.each(oneFilePerKind())('%s의 %s에서도 막힌다', async (_, __, file) => {
     expect(await ruleIds(file, READ_NAME), file).toContain(MEMBER_OF_ANY);
+  });
+});
+
+describe('설정을 쓰는 저장소의 루트', () => {
+  const made: string[] = [];
+  function tempRepo(files: readonly string[]): string {
+    const dir = mkdtempSync(path.join(tmpdir(), 'eslint-config-root-'));
+    made.push(dir);
+    for (const file of files) {
+      mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      writeFileSync(path.join(dir, file), '');
+    }
+    return dir;
+  }
+  afterAll(() => {
+    for (const dir of made) rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('위로 올라가며 루트 표지(워크스페이스 설정·lockfile)가 처음 있는 폴더다', () => {
+    const repo = tempRepo(['pnpm-lock.yaml', 'apps/web/src/a.ts']);
+    expect(repoRootFrom(path.join(repo, 'apps', 'web'))).toBe(repo);
+    expect(repoRootFrom(import.meta.dirname)).toBe(ROOT);
+  });
+
+  it('packages/가 없는 단일 패키지 저장소 — 레이어 폴더를 루트에서 바로 가리키고 워크스페이스 패키지 element가 없다', () => {
+    const repo = tempRepo(['pnpm-lock.yaml', 'src/a/x.ts']);
+    const [config] = layers(repo, [{ type: 'a', pattern: 'src/a' }]);
+    expect(config?.settings?.['boundaries/root-path']).toBe(repo);
+    expect(config?.settings?.['boundaries/elements']).toEqual([
+      { type: 'a', pattern: ['src/a'] },
+    ]);
+  });
+
+  it('워크스페이스가 아닌 저장소는 packages/ 폴더가 있어도 워크스페이스 패키지로 보지 않고, 그 패키지를 적으면 멈춘다', () => {
+    const repo = tempRepo(['pnpm-lock.yaml', 'packages/out/x.ts']);
+    const [config] = layers(repo, [{ type: 'a', pattern: 'src/a' }]);
+    expect(config?.settings?.['boundaries/elements']).toEqual([
+      { type: 'a', pattern: ['src/a'] },
+    ]);
+    expect(() =>
+      layers(repo, [{ type: 'a', pattern: 'src/a', packages: ['out'] }]),
+    ).toThrow('없는 워크스페이스 패키지: out');
+  });
+
+  it('루트 표지가 어디에도 없으면 찾지 못하고, 레이어는 그 패키지를 루트로 본다', ({
+    skip,
+  }) => {
+    const alone = tempRepo([]);
+    if (repoRootFrom(path.dirname(alone)) !== undefined) {
+      skip('임시 폴더의 조상에 루트 표지가 있다');
+    }
+    expect(repoRootFrom(alone)).toBeUndefined();
+    const [config] = layers(alone, [{ type: 'a', pattern: 'src/a' }]);
+    expect(config?.settings?.['boundaries/root-path']).toBe(alone);
+  });
+
+  it('모노레포의 하위 패키지 — 레이어 폴더를 저장소 루트 기준 경로로 가리킨다', () => {
+    const repo = tempRepo(['pnpm-workspace.yaml', 'packages/shared/x.ts']);
+    const [config] = layers(path.join(repo, 'apps', 'web'), [
+      { type: 'a', pattern: 'src/a', packages: ['shared'] },
+    ]);
+    expect(config?.settings?.['boundaries/elements']).toEqual([
+      { type: 'a', pattern: ['apps/web/src/a'] },
+      { type: 'pkg:shared', pattern: 'packages/shared' },
+    ]);
   });
 });
 
