@@ -1,9 +1,4 @@
-import {
-  base,
-  layers,
-  noNodeBuiltins,
-  TEST_FILES,
-} from '@hansangwook/guardrails';
+import { base, layers, noNodeBuiltins, TEST_FILES } from 'lint-guardrails';
 import { defineConfig } from 'eslint/config';
 
 // 클린 아키텍처: 의존은 바깥 → 안쪽으로만. main(조립)만 전부를 알고, 프레임워크·드라이버는 바깥 레이어에만 둔다.

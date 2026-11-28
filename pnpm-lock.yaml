@@ -215,9 +215,6 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:packages/tsconfig
-      '@hansangwook/guardrails':
-        specifier: workspace:*
-        version: link:packages/guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -230,6 +227,9 @@ importers:
       lefthook:
         specifier: ^2.2.2
         version: 2.2.2
+      lint-guardrails:
+        specifier: workspace:*
+        version: link:packages/guardrails
       prettier:
         specifier: 'catalog:'
         version: 3.10.1
@@ -264,12 +264,12 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.5.15
         version: 0.5.16
-      '@hansangwook/guardrails':
-        specifier: workspace:*
-        version: link:../../packages/guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
+      lint-guardrails:
+        specifier: workspace:*
+        version: link:../../packages/guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -289,7 +289,7 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@hansangwook/guardrails':
+      lint-guardrails:
         specifier: workspace:*
         version: link:../guardrails
       typescript:
@@ -304,12 +304,12 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@hansangwook/guardrails':
-        specifier: workspace:*
-        version: link:../guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
+      lint-guardrails:
+        specifier: workspace:*
+        version: link:../guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -329,7 +329,7 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@hansangwook/guardrails':
+      lint-guardrails:
         specifier: workspace:*
         version: link:../guardrails
       typescript:
@@ -348,12 +348,12 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@hansangwook/guardrails':
-        specifier: workspace:*
-        version: link:../guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
+      lint-guardrails:
+        specifier: workspace:*
+        version: link:../guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -370,7 +370,7 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@hansangwook/guardrails':
+      lint-guardrails:
         specifier: workspace:*
         version: link:../guardrails
       typescript:
@@ -426,7 +426,7 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@hansangwook/guardrails':
+      lint-guardrails:
         specifier: workspace:*
         version: link:../guardrails
       typescript:
@@ -450,15 +450,15 @@ importers:
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      '@hansangwook/guardrails':
-        specifier: workspace:*
-        version: link:../guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
       '@types/semver':
         specifier: ^7.7.1
         version: 7.8.0
+      lint-guardrails:
+        specifier: workspace:*
+        version: link:../guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3

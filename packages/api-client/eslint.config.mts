@@ -1,9 +1,4 @@
-import {
-  base,
-  layers,
-  noNodeBuiltins,
-  TEST_FILES,
-} from '@hansangwook/guardrails';
+import { base, layers, noNodeBuiltins, TEST_FILES } from 'lint-guardrails';
 import { defineConfig } from 'eslint/config';
 
 // 우리 API 클라이언트 — 계약과 공통 fetch 클라이언트만 안다. 브라우저·서버 어디서나 돈다.

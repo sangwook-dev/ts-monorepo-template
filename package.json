@@ -19,7 +19,7 @@
     "gates": "pnpm --filter @app/upgrade-gates gates"
   },
   "devDependencies": {
-    "@hansangwook/guardrails": "workspace:*",
+    "lint-guardrails": "workspace:*",
     "@app/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "eslint": "catalog:lint",

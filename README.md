@@ -58,7 +58,7 @@ AI 에이전트가 작업해도 구조가 무너지지 않는 TypeScript 모노�
   안의 값), 선언 파일(`.d.ts`·`.d.mts` 등). `local/no-overload-signature`·`local/no-ambient-value`·`local/no-declaration-file`
 - 바깥 입력(`JSON.parse`·`res.json()`)의 `any`를 타입 있는 자리로 흘리기, 기다리지 않은 promise, `'[object Object]'`로 찍히는
   문자열 — typescript-eslint의 타입 정보 규칙(`recommendedTypeChecked`), 모든 TS 파일(파일째 막히는 선언 파일은 뺀다)
-- lint 설정이 실제로 막는지 — 공유 패키지 `@hansangwook/guardrails`의 가드 테스트가 위반을 넣어 확인한다(양성 대조 포함)
+- lint 설정이 실제로 막는지 — 공유 패키지 `lint-guardrails`의 가드 테스트가 위반을 넣어 확인한다(양성 대조 포함)
 - 상대 경로 import 금지(`#/` 별칭·패키지 이름만) — `no-restricted-imports`
 - 엄격 타입(`noUncheckedIndexedAccess`·`exactOptionalPropertyTypes` 등) — `packages/tsconfig/base.json`
 - 결정 기록(ADR) 색인이 AGENTS.md와 맞는다 — 테스트 + 커밋 hook
@@ -75,7 +75,7 @@ AI 에이전트가 작업해도 구조가 무너지지 않는 TypeScript 모노�
 ## 구조
 
 - `packages/domain` — 엔티티·순수 규칙(zod만 의존). 서버와 클라이언트가 같이 쓴다
-- `@hansangwook/guardrails`(npm) — 공통 lint 규칙 + `layers()` 경계 헬퍼 + 가드 테스트. 템플릿 저장소의 packages/guardrails에서만 고치고, 만든 저장소는 의존성을 올려 받는다(ADR 0021)
+- `lint-guardrails`(npm) — 공통 lint 규칙 + `layers()` 경계 헬퍼 + 가드 테스트. 템플릿 저장소의 packages/guardrails에서만 고치고, 만든 저장소는 의존성을 올려 받는다(ADR 0021)
 - `packages/tsconfig` — 공통 tsconfig 프리셋
 - `packages/docs-index` — `docs/adr` → AGENTS.md 결정 색인 생성·검사, 문서·주석이 가리키는 것(저장소 경로·ADR 번호) 검사
 - `docs/adr` — 설계 결정 기록

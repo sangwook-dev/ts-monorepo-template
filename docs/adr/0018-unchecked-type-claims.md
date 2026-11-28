@@ -24,7 +24,7 @@ status: accepted
 - 셋은 `no-restricted-syntax`가 아니라 공통 설정 패키지가 정의하는 규칙(`local/…`)이다. `no-restricted-syntax`는 설정 블록마다
   통째로 덮어써져서, 공통 설정에 두면 자기 목록을 둔 패키지(도메인의 `noTopLevelEffects`, ADR 0011)에서 조용히 빠진다. 이름이
   따로면 덮일 수 없고, 예외를 열 때도 그 규칙 하나만 꺼진다. `no-restricted-syntax`는 패키지가 자기 목록에 쓴다.
-- 가드 테스트(`@hansangwook/guardrails`의 `guards.test.mts`)가 꼴마다 막히는지, 테스트 파일에서도 막히는지, 도메인의
+- 가드 테스트(`lint-guardrails`의 `guards.test.mts`)가 꼴마다 막히는지, 테스트 파일에서도 막히는지, 도메인의
   `no-restricted-syntax`와 함께 걸리는지, 추론된 서술·`find`·초기값·생성자 대입이 통과하는지(양성 대조)를 본다.
 - 이 결정 때 "lint가 못 보는 것"으로 남긴 오버로드 시그니처와 앰비언트 값 선언(`.d.ts` 포함)은 ADR 0020이 이어서 막는다.
 - 라이브러리에서 흘러드는 `any`는 이 규칙들이 아니라 타입 정보를 쓰는 규칙이 본다(ADR 0019).

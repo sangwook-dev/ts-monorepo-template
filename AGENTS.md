@@ -43,7 +43,7 @@
 - [0018](docs/adr/0018-unchecked-type-claims.md) 타입 서술(`x is T`·`asserts x`)·확정 대입(`x!: T`)·`declare` 필드도 lint로 막는다
 - [0019](docs/adr/0019-type-checked-lint-everywhere.md) 타입 정보를 쓰는 lint 규칙(any 흘리기·기다리지 않은 promise 등)을 공통 설정에서 모든 TS 파일에 켠다
 - [0020](docs/adr/0020-declarations-without-implementation.md) 오버로드 시그니처·앰비언트 값 선언(`declare`)·`.d.ts`도 lint로 막는다
-- [0021](docs/adr/0021-shared-guardrails-package.md) 공통 lint 규칙은 npm 패키지 @hansangwook/guardrails 하나로 배포하고, 템플릿으로 만든 저장소도 복사본 대신 그 패키지에 의존한다
+- [0021](docs/adr/0021-shared-guardrails-package.md) 공통 lint 규칙은 npm 패키지 lint-guardrails 하나로 배포하고, 템플릿으로 만든 저장소도 복사본 대신 그 패키지에 의존한다
 
 <!-- adr-index:end -->
 

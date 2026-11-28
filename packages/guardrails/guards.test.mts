@@ -9,11 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import {
-  layers,
-  moduleFolderProblems,
-  repoRootFrom,
-} from '@hansangwook/guardrails';
+import { layers, moduleFolderProblems, repoRootFrom } from 'lint-guardrails';
 import { ESLint } from 'eslint';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 

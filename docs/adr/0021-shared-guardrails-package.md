@@ -3,12 +3,12 @@ date: 2026-11-28
 status: accepted
 ---
 
-# 공통 lint 규칙은 npm 패키지 @hansangwook/guardrails 하나로 배포하고, 템플릿으로 만든 저장소도 복사본 대신 그 패키지에 의존한다
+# 공통 lint 규칙은 npm 패키지 lint-guardrails 하나로 배포하고, 템플릿으로 만든 저장소도 복사본 대신 그 패키지에 의존한다
 
 ## 결정
 
 - 공통 lint 규칙(`base`·`layers`·`domainLayers`·`noTopLevelEffects`와 가드 테스트)은 템플릿 저장소의 packages/guardrails에만 있다. 패키지 이름은
-  `@hansangwook/guardrails`이고 npm에 공개로 배포한다. 템플릿 안의 앱·패키지는 워크스페이스 의존성(`workspace:*`)으로 쓴다.
+  `lint-guardrails`이고 npm에 공개로 배포한다. 이름에 도구(ESLint)를 넣지 않는다 — 규칙을 강제하는 도구가 바뀌어도 이름이 맞게. 템플릿 안의 앱·패키지는 워크스페이스 의존성(`workspace:*`)으로 쓴다.
 - `init`은 만든 저장소에서 그 폴더를 지우고, 의존성을 그때의 배포 판(정확한 버전)으로 바꾼다. 만든 저장소는 규칙을
   고치지 않고 의존성을 올려 받는다. 따로 시작한 저장소도 같은 패키지에 의존한다.
 - 저장소마다 다른 것은 그 저장소의 `eslint.config.ts` 한 곳에만 둔다 — 레이어·모듈·예외 목록 같은 표다. 공통 규칙을 저장소에서 고치거나

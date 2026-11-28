@@ -1,6 +1,6 @@
 name: Publish guardrails
 
-# 공유 lint 규칙 @hansangwook/guardrails를 npm에 배포한다(ADR 0021). packages/guardrails/package.json의 version이 npm에 아직 없을
+# 공유 lint 규칙 lint-guardrails를 npm에 배포한다(ADR 0021). packages/guardrails/package.json의 version이 npm에 아직 없을
 # 때만 배포한다 — 버전을 올리지 않은 머지는 아무것도 하지 않는다.
 # 인증은 npm trusted publishing(OIDC)이다 — 저장소에 npm 토큰을 두지 않는다. npmjs.com의 패키지 설정(Settings → Trusted
 # publishing)에 이 저장소와 이 워크플로 파일 이름을 등록해야 돈다. 템플릿 전용이라 init이 지운다.
@@ -43,7 +43,7 @@ jobs:
         run: |
           version="$(node -p "require('./packages/guardrails/package.json').version")"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
-          if npm view "@hansangwook/guardrails@${version}" version > /dev/null 2>&1; then
+          if npm view "lint-guardrails@${version}" version > /dev/null 2>&1; then
             echo "published=true" >> "$GITHUB_OUTPUT"
             echo "${version}은 이미 npm에 있다 — 버전을 올리지 않은 머지"
           fi
@@ -51,7 +51,7 @@ jobs:
       # 배포 전에 그 패키지의 검사(가드 테스트 포함)를 다시 돌린다
       - name: Verify package
         if: steps.version.outputs.published != 'true'
-        run: pnpm turbo run lint check-types test --filter=@hansangwook/guardrails
+        run: pnpm turbo run lint check-types test --filter=lint-guardrails
 
       # pnpm pack이 catalog:·workspace: 표기를 실제 버전으로 바꾸고, npm이 OIDC로 인증해 provenance와 함께 올린다
       - name: Publish
@@ -59,4 +59,4 @@ jobs:
         working-directory: packages/guardrails
         run: |
           pnpm pack --pack-destination "$RUNNER_TEMP"
-          npm publish "$RUNNER_TEMP"/hansangwook-guardrails-*.tgz --access public --provenance
+          npm publish "$RUNNER_TEMP"/lint-guardrails-*.tgz --access public --provenance

@@ -17,7 +17,7 @@ status: accepted
   없을 수 있는 값은 확인해서 없을 때의 동작을 적는다. 타입이 실제와 다르면 그 타입의 출처를 고친다.
 - 예외를 여는 방법은 ADR 0007과 같다. 그 패키지의 `eslint.config.mts`에 좁은 `files` 블록으로 해당 규칙만 끄고 이유를 주석으로
   적은 뒤, PR 설명에 위치와 이유를 적는다. 공통 설정(`base`)에서는 풀지 않는다.
-- 가드 테스트(`@hansangwook/guardrails`의 `guards.test.mts`)가 위반마다 막히는지와 `as const`·`satisfies`가 통과하는지(양성 대조)를
+- 가드 테스트(`lint-guardrails`의 `guards.test.mts`)가 위반마다 막히는지와 `as const`·`satisfies`가 통과하는지(양성 대조)를
   본다.
 - 확정 대입 단언(`x!: T`)과, 확인하지 않고 참을 돌려주는 타입 가드(`x is T`)는 ADR 0018이 이어서 막는다.
 - 라이브러리에서 흘러드는 `any`(`JSON.parse`, `res.json()`)는 이 규칙들이 아니라 타입 정보를 쓰는 규칙이 본다(ADR 0019).

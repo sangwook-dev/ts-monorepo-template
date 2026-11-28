@@ -34,7 +34,7 @@ const TEMPLATE_ONLY = [
 // 공유 lint 규칙(ADR 0021). 템플릿 안에서는 워크스페이스 패키지로 고치고 시험하고, 만든 저장소는 npm에 배포된 판에 의존한다 —
 // 규칙을 고치는 곳이 템플릿 하나뿐이고 만든 저장소는 의존성을 올려 받는다
 const GUARDRAILS_DIR = 'packages/guardrails';
-const GUARDRAILS_NAME = '@hansangwook/guardrails';
+const GUARDRAILS_NAME = 'lint-guardrails';
 // 템플릿으로 만든 문서에서 늘 지우는 문단(`<!-- module:x:start -->`): 템플릿 사용법, 의존성 자동화
 const ALWAYS_REMOVED_BLOCKS = ['template', 'deps'];
 

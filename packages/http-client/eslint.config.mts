@@ -1,9 +1,4 @@
-import {
-  base,
-  layers,
-  noNodeBuiltins,
-  TEST_FILES,
-} from '@hansangwook/guardrails';
+import { base, layers, noNodeBuiltins, TEST_FILES } from 'lint-guardrails';
 import { defineConfig } from 'eslint/config';
 
 // 범용 fetch 래퍼 — 우리 도메인·계약을 모른다. 브라우저·서버 어디서나 돈다.

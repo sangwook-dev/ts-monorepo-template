@@ -1,9 +1,4 @@
-import {
-  base,
-  layers,
-  noNodeBuiltins,
-  TEST_FILES,
-} from '@hansangwook/guardrails';
+import { base, layers, noNodeBuiltins, TEST_FILES } from 'lint-guardrails';
 import { defineConfig } from 'eslint/config';
 
 // API 계약 = 인터페이스 레이어의 공용 부분. 도메인(상수 파생용)과 zod만 안다. 브라우저·서버 어디서나 돈다.

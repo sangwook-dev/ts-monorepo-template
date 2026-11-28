@@ -17,7 +17,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@hansangwook/guardrails": "workspace:*",
+    "lint-guardrails": "workspace:*",
     "@app/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",

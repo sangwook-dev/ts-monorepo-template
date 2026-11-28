@@ -1,4 +1,4 @@
-# @hansangwook/guardrails
+# lint-guardrails
 
 규칙을 문서가 아니라 lint로 강제하는 공통 ESLint 설정이다. 결정과 이유는
 [ts-monorepo-template의 ADR](https://github.com/sangwook-dev/ts-monorepo-template/tree/main/docs/adr)에 있다.
@@ -14,7 +14,7 @@ ESLint 설정은 TypeScript여야 하고 `jiti`가 있어야 한다(이 패키�
 
 ```ts
 // eslint.config.ts
-import { base, layers } from '@hansangwook/guardrails';
+import { base, layers } from 'lint-guardrails';
 
 export default [
   ...base,

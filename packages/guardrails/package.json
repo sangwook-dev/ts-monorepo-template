@@ -1,5 +1,5 @@
 {
-  "name": "@hansangwook/guardrails",
+  "name": "lint-guardrails",
   "version": "0.1.0",
   "type": "module",
   "description": "규칙을 문서가 아니라 lint로 강제하는 공통 ESLint 설정 — 타입 우회 금지, 레이어 경계(layers), 부작용 없는 도메인(domainLayers). 소비 저장소의 eslint.config.ts가 base를 펼치고 자기 표만 얹는다.",
