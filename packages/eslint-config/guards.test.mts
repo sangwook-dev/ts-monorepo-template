@@ -1,6 +1,11 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { moduleFolderProblems } from '@app/eslint-config';
+import {
+  layers,
+  moduleFolderProblems,
+  workspaceRootOf,
+} from '@app/eslint-config';
 import { ESLint } from 'eslint';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -599,6 +604,38 @@ describe('타입 정보를 쓰는 규칙', () => {
   // 패키지가 규칙을 끄거나(files 블록) 타입 정보 없이 파싱하면 그 패키지의 파일에서 실패한다
   it.each(oneFilePerKind())('%s의 %s에서도 막힌다', async (_, __, file) => {
     expect(await ruleIds(file, READ_NAME), file).toContain(MEMBER_OF_ANY);
+  });
+});
+
+describe('설정을 쓰는 저장소의 루트', () => {
+  it('워크스페이스 안에서는 pnpm-workspace.yaml이 있는 폴더다', () => {
+    expect(workspaceRootOf(import.meta.dirname)).toBe(ROOT);
+  });
+
+  it('설치된 패키지로 불리면 node_modules 앞이 소비 저장소의 루트다', () => {
+    const consumer = path.join(tmpdir(), 'consumer');
+    const installed = path.join(
+      consumer,
+      'node_modules',
+      '.pnpm',
+      'x@1.0.0',
+      'node_modules',
+      'x',
+    );
+    expect(workspaceRootOf(installed)).toBe(consumer);
+  });
+
+  it('패키지가 곧 저장소 루트면 레이어 폴더를 루트에서 바로 가리킨다 — 패키지 하나뿐인 소비 저장소', () => {
+    const [config] = layers(ROOT, [{ type: 'a', pattern: 'src/a' }]);
+    expect(config?.settings?.['boundaries/elements']).toContainEqual({
+      type: 'a',
+      pattern: ['src/a'],
+    });
+  });
+
+  it('워크스페이스 파일도 node_modules도 없으면 그 폴더 자신이다', () => {
+    const alone = mkdtempSync(path.join(tmpdir(), 'eslint-config-root-'));
+    expect(workspaceRootOf(alone)).toBe(alone);
   });
 });
 

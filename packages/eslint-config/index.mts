@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import eslintComments from '@eslint-community/eslint-plugin-eslint-comments';
 import js from '@eslint/js';
@@ -84,8 +84,22 @@ const declarationFile = bannedSyntax(
  */
 const DECLARATION_FILES = ['**/*.d.{ts,mts,cts}', '**/*.d.*.ts'];
 
-// 워크스페이스 루트. 이 파일 위치에서 계산하는 파일 시스템 경로라 import 별칭을 쓸 수 없다
-const WORKSPACE_ROOT = path.resolve(import.meta.dirname, '..', '..');
+/**
+ * 이 설정을 쓰는 저장소의 루트. 설치된 패키지로 불렸으면(경로에 `node_modules`가 있다) 그 앞이 소비 저장소의 루트고, 워크스페이스
+ * 안에서 불렸으면 위로 올라가며 `pnpm-workspace.yaml`이 있는 폴더다(없으면 `dir` 자신). pnpm은 패키지를 루트의
+ * `node_modules/.pnpm`에 두고 Node는 심링크를 실제 경로로 풀어 읽으므로, 모노레포의 하위 패키지가 불러도 루트가 나온다.
+ * 파일 시스템 경로라 import 별칭을 쓸 수 없다
+ */
+export function workspaceRootOf(dir: string): string {
+  const installed = dir.indexOf(`${path.sep}node_modules${path.sep}`);
+  if (installed >= 0) return dir.slice(0, installed);
+  for (let at = dir; ; at = path.dirname(at)) {
+    if (existsSync(path.join(at, 'pnpm-workspace.yaml'))) return at;
+    if (path.dirname(at) === at) return dir;
+  }
+}
+
+const WORKSPACE_ROOT = workspaceRootOf(import.meta.dirname);
 
 /**
  * 공통 규칙. 각 앱·패키지는 자기 경로의 eslint.config.mts에서 `base`를 펼치고
@@ -210,13 +224,21 @@ function relativeImportBan() {
 // 기본 금지, 허용만 나열한다 — 로컬 레이어·워크스페이스 패키지·npm 모듈·Node 코어 모듈 모두.
 // 같은 element 안은 자유이고, 프로덕션은 테스트 파일을 import할 수 없으며, 테스트는 무엇이든 import한다.
 
-// 워크스페이스 패키지 하나가 element 하나다 — 새 패키지가 생겨도 누가 열 수 있는지는 layers에 적어야 열린다
-const WORKSPACE_PACKAGES = readdirSync(path.join(WORKSPACE_ROOT, 'packages'), {
-  withFileTypes: true,
-})
-  // 숨김 폴더(도구가 만드는 .claude/ 등)는 패키지가 아니다
-  .filter(d => d.isDirectory() && !d.name.startsWith('.'))
-  .map(d => d.name);
+/**
+ * 워크스페이스 패키지 하나가 element 하나다 — 새 패키지가 생겨도 누가 열 수 있는지는 layers에 적어야 열린다. `packages/`가 없는
+ * 저장소(패키지 하나뿐인 소비 저장소)는 빈 목록이다. 불러올 때가 아니라 `layers()`를 부를 때 읽는다 — 불러오기만 하는 저장소가
+ * 없는 폴더를 읽다 멈추지 않게
+ */
+function workspacePackagesOf(root: string): string[] {
+  const dir = path.join(root, 'packages');
+  if (!existsSync(dir)) return [];
+  return (
+    readdirSync(dir, { withFileTypes: true })
+      // 숨김 폴더(도구가 만드는 .claude/ 등)는 패키지가 아니다
+      .filter(d => d.isDirectory() && !d.name.startsWith('.'))
+      .map(d => d.name)
+  );
+}
 
 const pkgType = (name: string) => `pkg:${name}`;
 
@@ -238,15 +260,17 @@ export interface Layer {
 }
 
 export function layers(packageDir: string, list: Layer[]) {
+  const workspacePackages = workspacePackagesOf(WORKSPACE_ROOT);
   const unknownPackages = list
     .flatMap(l => l.packages ?? [])
-    .filter(p => !WORKSPACE_PACKAGES.includes(p));
+    .filter(p => !workspacePackages.includes(p));
   if (unknownPackages.length > 0) {
     throw new Error(`없는 워크스페이스 패키지: ${unknownPackages.join(', ')}`);
   }
 
   const rel = path.relative(WORKSPACE_ROOT, packageDir);
-  const anchor = (p: string) => `${rel}/${p}`;
+  // 패키지가 곧 저장소 루트면(패키지 하나뿐인 소비 저장소) rel이 빈 문자열이다 — 앞에 `/`를 붙이면 아무것도 맞지 않는다
+  const anchor = (p: string) => (rel === '' ? p : `${rel}/${p}`);
   const withEntry = list.filter(l => l.entry !== undefined);
 
   return defineConfig({
@@ -267,7 +291,7 @@ export function layers(packageDir: string, list: Layer[]) {
           type: l.type,
           pattern: [l.pattern].flat().map(anchor),
         })),
-        ...WORKSPACE_PACKAGES.map(name => ({
+        ...workspacePackages.map(name => ({
           type: pkgType(name),
           pattern: `packages/${name}`,
         })),
