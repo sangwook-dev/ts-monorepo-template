@@ -21,7 +21,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@app/eslint-config": "workspace:*",
+    "@hansangwook/guardrails": "workspace:*",
     "@app/tsconfig": "workspace:*",
     "@electric-sql/pglite": "^0.5.15",
     "@types/node": "catalog:",

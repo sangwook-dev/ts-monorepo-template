@@ -4,7 +4,7 @@ import {
   noNodeBuiltins,
   noTopLevelEffects,
   TEST_FILES,
-} from '@app/eslint-config';
+} from '@hansangwook/guardrails';
 import { defineConfig } from 'eslint/config';
 
 // 도메인 = 가장 안쪽. 다른 워크스페이스 패키지·프레임워크·I/O를 모른다.

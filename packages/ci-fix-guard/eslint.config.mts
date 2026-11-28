@@ -1,4 +1,4 @@
-import { base, layers, TEST_FILES } from '@app/eslint-config';
+import { base, layers, TEST_FILES } from '@hansangwook/guardrails';
 import { defineConfig } from 'eslint/config';
 
 // CI 자동 수정 패치를 테스트 결과로 검사하는 Node 도구. verify 잡이 기본 브랜치의 판을 작업 트리 밖에 복사해 쓰므로 그 자리에는

@@ -20,7 +20,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@app/eslint-config": "workspace:*",
+    "@hansangwook/guardrails": "workspace:*",
     "@app/tsconfig": "workspace:*",
     "typescript": "catalog:",
     "vitest": "catalog:"

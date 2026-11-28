@@ -28,7 +28,13 @@ const UNTOUCHED = ['.claude/skills/'];
 const TEMPLATE_ONLY = [
   'scripts/init.ts',
   '.github/workflows/template-init.yml',
+  // 공유 lint 규칙의 npm 배포 — 규칙은 템플릿에서만 고친다(ADR 0021)
+  '.github/workflows/publish-guardrails.yml',
 ];
+// 공유 lint 규칙(ADR 0021). 템플릿 안에서는 워크스페이스 패키지로 고치고 시험하고, 만든 저장소는 npm에 배포된 판에 의존한다 —
+// 규칙을 고치는 곳이 템플릿 하나뿐이고 만든 저장소는 의존성을 올려 받는다
+const GUARDRAILS_DIR = 'packages/guardrails';
+const GUARDRAILS_NAME = '@hansangwook/guardrails';
 // 템플릿으로 만든 문서에서 늘 지우는 문단(`<!-- module:x:start -->`): 템플릿 사용법, 의존성 자동화
 const ALWAYS_REMOVED_BLOCKS = ['template', 'deps'];
 
@@ -210,6 +216,55 @@ function removeDependencies(file: string, names: readonly string[]) {
   });
 }
 
+/** 의존성 목록에서 `name`이 워크스페이스(`workspace:*`)를 가리키면 `version`으로 바꾼다 */
+function pinWorkspaceDependency(
+  value: unknown,
+  name: string,
+  version: string,
+): unknown {
+  if (typeof value !== 'object' || value === null) return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, spec]) => [
+      key,
+      key === name && spec === 'workspace:*' ? version : spec,
+    ]),
+  );
+}
+
+/** 만든 저장소가 템플릿 안의 공유 lint 패키지 대신 npm에 배포된 같은 판에 의존하게 한다 */
+function useReleasedGuardrails() {
+  const manifest: unknown = JSON.parse(
+    readFileSync(path.join(ROOT, GUARDRAILS_DIR, 'package.json'), 'utf8'),
+  );
+  const version =
+    typeof manifest === 'object' && manifest !== null && 'version' in manifest
+      ? manifest.version
+      : undefined;
+  if (typeof version !== 'string') {
+    fail(`${GUARDRAILS_DIR}/package.json에 version이 없다`);
+  }
+  const manifests = execFileSync('git', ['ls-files', '*package.json'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  })
+    .split('\n')
+    .filter(f => f !== '' && !f.startsWith(`${GUARDRAILS_DIR}/`));
+  for (const file of manifests) {
+    editJson(file, json => {
+      for (const field of ['dependencies', 'devDependencies'] as const) {
+        if (field in json) {
+          json[field] = pinWorkspaceDependency(
+            json[field],
+            GUARDRAILS_NAME,
+            version,
+          );
+        }
+      }
+    });
+  }
+  gitRemove([GUARDRAILS_DIR]);
+}
+
 function removeCatalogEntries(names: readonly string[]) {
   const file = path.join(ROOT, 'pnpm-workspace.yaml');
   const lines = readFileSync(file, 'utf8').split('\n');
@@ -272,6 +327,7 @@ for (const module of [
   }
 }
 
+useReleasedGuardrails();
 gitRemove(TEMPLATE_ONLY);
 editJson('package.json', json => {
   json['scripts'] = dropKeys(json['scripts'], ['init:project']);

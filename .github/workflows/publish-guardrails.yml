@@ -1,0 +1,62 @@
+name: Publish guardrails
+
+# 공유 lint 규칙 @hansangwook/guardrails를 npm에 배포한다(ADR 0021). packages/guardrails/package.json의 version이 npm에 아직 없을
+# 때만 배포한다 — 버전을 올리지 않은 머지는 아무것도 하지 않는다.
+# 인증은 npm trusted publishing(OIDC)이다 — 저장소에 npm 토큰을 두지 않는다. npmjs.com의 패키지 설정(Settings → Trusted
+# publishing)에 이 저장소와 이 워크플로 파일 이름을 등록해야 돈다. 템플릿 전용이라 init이 지운다.
+on:
+  push:
+    branches: [main]
+    paths: ['packages/guardrails/**']
+  workflow_dispatch:
+
+concurrency:
+  group: publish-guardrails
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # npm trusted publishing과 provenance가 쓰는 OIDC 토큰
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # 배포 잡은 캐시를 쓰지 않는다 — 배포물이 캐시에서 온 것을 실을 수 없게
+      - name: Setup workspace
+        uses: ./.github/actions/setup
+        with:
+          cache: 'false'
+
+      - name: Check published version
+        id: version
+        run: |
+          version="$(node -p "require('./packages/guardrails/package.json').version")"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          if npm view "@hansangwook/guardrails@${version}" version > /dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "${version}은 이미 npm에 있다 — 버전을 올리지 않은 머지"
+          fi
+
+      # 배포 전에 그 패키지의 검사(가드 테스트 포함)를 다시 돌린다
+      - name: Verify package
+        if: steps.version.outputs.published != 'true'
+        run: pnpm turbo run lint check-types test --filter=@hansangwook/guardrails
+
+      # pnpm pack이 catalog:·workspace: 표기를 실제 버전으로 바꾸고, npm이 OIDC로 인증해 provenance와 함께 올린다
+      - name: Publish
+        if: steps.version.outputs.published != 'true'
+        working-directory: packages/guardrails
+        run: |
+          pnpm pack --pack-destination "$RUNNER_TEMP"
+          npm publish "$RUNNER_TEMP"/hansangwook-guardrails-*.tgz --access public --provenance

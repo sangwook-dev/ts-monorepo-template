@@ -14,7 +14,7 @@ status: accepted
 - 도메인 모듈은 공개 API(`index.ts`)로만 들어온다.
 - DDD는 비례적으로 — 모듈·엔티티·순수 규칙까지만. 이벤트 버스·애그리거트 클래스 같은 의식은 두지 않는다.
 - 도메인의 유일한 외부 의존은 zod다(엔티티 검증의 단일 출처이고 I/O가 아니다).
-- 설정이 실제로 막는지는 `packages/eslint-config/guards.test.mts`가 위반을 넣어 확인한다(양성 대조 포함).
+- 설정이 실제로 막는지는 `@hansangwook/guardrails`의 `guards.test.mts`가 위반을 넣어 확인한다(양성 대조 포함).
 
 ## 이유
 

@@ -212,12 +212,12 @@ importers:
 
   .:
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:packages/eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:packages/tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:packages/guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -258,15 +258,15 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
       '@electric-sql/pglite':
         specifier: ^0.5.15
         version: 0.5.16
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../../packages/guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -286,12 +286,12 @@ importers:
         specifier: workspace:*
         version: link:../http-client
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -301,12 +301,12 @@ importers:
 
   packages/ci-fix-guard:
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -326,12 +326,12 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -345,12 +345,12 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
@@ -367,12 +367,12 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -380,7 +380,7 @@ importers:
         specifier: 'catalog:'
         version: 5.1.0(@types/node@26.6.6)(vite@8.3.8(@types/node@26.6.6)(jiti@2.7.0))
 
-  packages/eslint-config:
+  packages/guardrails:
     dependencies:
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: catalog:lint
@@ -423,12 +423,12 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -447,12 +447,12 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@app/eslint-config':
-        specifier: workspace:*
-        version: link:../eslint-config
       '@app/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@hansangwook/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6
