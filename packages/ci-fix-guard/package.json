@@ -13,7 +13,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "@app/eslint-config": "workspace:*",
+    "lint-guardrails": "workspace:*",
     "@app/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",

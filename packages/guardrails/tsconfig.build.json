@@ -1,0 +1,13 @@
+{
+  // 배포용 빌드 — npm에는 JS(index.mjs)와 타입(index.d.mts)을 낸다. Node는 node_modules 안의 TypeScript를 타입 제거로 읽지 않아,
+  // 소스(index.mts)를 그대로 내면 소비 저장소의 ESLint가 설정을 불러오다 멈춘다(ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING)
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "declaration": true,
+    "rootDir": ".",
+    "outDir": "dist"
+  },
+  "include": ["index.mts"]
+}

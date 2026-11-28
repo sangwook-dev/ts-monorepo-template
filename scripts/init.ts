@@ -28,7 +28,13 @@ const UNTOUCHED = ['.claude/skills/'];
 const TEMPLATE_ONLY = [
   'scripts/init.ts',
   '.github/workflows/template-init.yml',
+  // 공유 lint 규칙의 npm 배포 — 규칙은 템플릿에서만 고친다(ADR 0021)
+  '.github/workflows/publish-guardrails.yml',
 ];
+// 공유 lint 규칙(ADR 0021). 템플릿 안에서는 워크스페이스 패키지로 고치고 시험하고, 만든 저장소는 npm에 배포된 판에 의존한다 —
+// 규칙을 고치는 곳이 템플릿 하나뿐이고 만든 저장소는 의존성을 올려 받는다
+const GUARDRAILS_DIR = 'packages/guardrails';
+const GUARDRAILS_NAME = 'lint-guardrails';
 // 템플릿으로 만든 문서에서 늘 지우는 문단(`<!-- module:x:start -->`): 템플릿 사용법, 의존성 자동화
 const ALWAYS_REMOVED_BLOCKS = ['template', 'deps'];
 
@@ -210,6 +216,84 @@ function removeDependencies(file: string, names: readonly string[]) {
   });
 }
 
+/** 의존성 목록에서 `name`이 워크스페이스(`workspace:*`)를 가리키면 `version`으로 바꾼다 */
+function pinWorkspaceDependency(
+  value: unknown,
+  name: string,
+  version: string,
+): unknown {
+  if (typeof value !== 'object' || value === null) return value;
+  return Object.fromEntries(
+    Object.entries(value).map(([key, spec]) => [
+      key,
+      key === name && spec === 'workspace:*' ? version : spec,
+    ]),
+  );
+}
+
+/**
+ * 만든 저장소가 의존할 공유 lint 패키지의 판. 보통은 템플릿의 `version` 그대로이고, 그 판이 npm에 있는지 먼저 본다 — 판을 올린 머지
+ * 뒤 배포 잡(publish-guardrails.yml)이 끝나기 전이거나 실패했으면 없다. 아무것도 지우기 전에 부르므로, 멈춰도 저장소가 반쯤
+ * 바뀌지 않는다. 템플릿 CI는 `GUARDRAILS_TARBALL`(그 PR에서 `pnpm pack`한 tarball)을 주어 아직 배포되지 않은 그 PR의 규칙을 시험한다
+ */
+function guardrailsSpec(): string {
+  const tarball = process.env['GUARDRAILS_TARBALL'];
+  if (tarball !== undefined && tarball !== '') {
+    if (!existsSync(tarball)) fail(`GUARDRAILS_TARBALL이 없다: ${tarball}`);
+    return `file:${path.resolve(tarball)}`;
+  }
+  const manifest: unknown = JSON.parse(
+    readFileSync(path.join(ROOT, GUARDRAILS_DIR, 'package.json'), 'utf8'),
+  );
+  const version =
+    typeof manifest === 'object' && manifest !== null && 'version' in manifest
+      ? manifest.version
+      : undefined;
+  if (typeof version !== 'string') {
+    fail(`${GUARDRAILS_DIR}/package.json에 version이 없다`);
+  }
+  try {
+    execFileSync('npm', ['view', `${GUARDRAILS_NAME}@${version}`, 'version'], {
+      cwd: ROOT,
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+  } catch (error) {
+    const stderr =
+      error instanceof Error && 'stderr' in error ? String(error.stderr) : '';
+    fail(
+      stderr.includes('E404')
+        ? `${GUARDRAILS_NAME}@${version}이 npm에 아직 없다 — 템플릿의 배포 잡(publish-guardrails.yml)이 끝난 뒤 다시 실행한다`
+        : `npm에서 ${GUARDRAILS_NAME}@${version}을 확인하지 못했다:
+${stderr || String(error)}`,
+    );
+  }
+  return version;
+}
+
+/** 만든 저장소가 템플릿 안의 공유 lint 패키지 대신 `spec`(배포된 같은 판)에 의존하게 한다 */
+function useReleasedGuardrails(spec: string) {
+  const manifests = execFileSync('git', ['ls-files', '*package.json'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+  })
+    .split('\n')
+    .filter(f => f !== '' && !f.startsWith(`${GUARDRAILS_DIR}/`));
+  for (const file of manifests) {
+    editJson(file, json => {
+      for (const field of ['dependencies', 'devDependencies'] as const) {
+        if (field in json) {
+          json[field] = pinWorkspaceDependency(
+            json[field],
+            GUARDRAILS_NAME,
+            spec,
+          );
+        }
+      }
+    });
+  }
+  gitRemove([GUARDRAILS_DIR]);
+}
+
 function removeCatalogEntries(names: readonly string[]) {
   const file = path.join(ROOT, 'pnpm-workspace.yaml');
   const lines = readFileSync(file, 'utf8').split('\n');
@@ -251,6 +335,7 @@ function trackedTextFiles(): string[] {
 }
 
 const args = parseArgs(process.argv.slice(2));
+const guardrails = guardrailsSpec();
 const without = closure(
   args.without ?? (process.stdin.isTTY ? await ask() : new Set()),
 );
@@ -272,6 +357,7 @@ for (const module of [
   }
 }
 
+useReleasedGuardrails(guardrails);
 gitRemove(TEMPLATE_ONLY);
 editJson('package.json', json => {
   json['scripts'] = dropKeys(json['scripts'], ['init:project']);

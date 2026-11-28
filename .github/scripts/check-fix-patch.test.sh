@@ -18,7 +18,7 @@ git -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
 # 전역 설정과 무관하게 git 기본값으로 — ASCII 밖의 경로를 따옴표로 감싼다
 git config core.quotePath true
 # 저장소와 같은 배치 — 허용 목록(앱·패키지의 src, scripts, 문서)의 안과 밖에 파일을 하나씩 둔다
-mkdir -p packages/x/src packages/eslint-config scripts docs/adr .github/workflows .claude/skills/s
+mkdir -p packages/x/src packages/guardrails scripts docs/adr .github/workflows .claude/skills/s
 printf 'export const a = 1;\n' >packages/x/src/a.ts
 printf 'it("a", () => {});\n' >packages/x/src/a.test.ts
 printf '{"name":"x"}\n' >packages/x/package.json
@@ -26,7 +26,7 @@ printf '{"a":1}\n' >packages/x/설정.json
 ln -s a.ts packages/x/src/link.ts
 printf '{"compilerOptions":{"strict":true}}\n' >packages/x/tsconfig.json
 printf 'export default [];\n' >packages/x/eslint.config.mts
-printf 'export const base = [];\n' >packages/eslint-config/index.mts
+printf 'export const base = [];\n' >packages/guardrails/index.mts
 printf '{"name":"root"}\n' >package.json
 printf '{"tasks":{}}\n' >turbo.json
 printf 'export {};\n' >scripts/init.ts
@@ -70,7 +70,7 @@ expect reject '루트 package.json 수정' "printf '{\"name\":\"root\",\"scripts
 expect reject '패키지 package.json 수정' "printf '{\"name\":\"x\",\"private\":true}\n' >packages/x/package.json"
 expect reject 'tsconfig 수정' "printf '{\"compilerOptions\":{\"strict\":false}}\n' >packages/x/tsconfig.json"
 expect reject '패키지 eslint 설정 수정' "printf 'export default [{ rules: {} }];\n' >packages/x/eslint.config.mts"
-expect reject '공통 lint 규칙 수정' "printf 'export const base = [{}];\n' >packages/eslint-config/index.mts"
+expect reject '공통 lint 규칙 수정' "printf 'export const base = [{}];\n' >packages/guardrails/index.mts"
 expect reject 'turbo.json 수정' "printf '{\"tasks\":{\"test\":{}}}\n' >turbo.json"
 expect reject '.github 수정' "printf 'name: ci2\n' >.github/workflows/ci.yml"
 expect reject '.claude 아래 문서 수정(.md라도)' "printf '# 스킬(고침)\n' >.claude/skills/s/SKILL.md"

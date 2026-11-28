@@ -4,7 +4,7 @@
 #
 # 받는 것(허용 목록 — ALLOWED): 이미 git이 추적하는 텍스트 파일 가운데 앱·패키지의 src(소스·테스트), 루트 scripts, 루트
 # README.md의 수정만. 목록 밖은 모두 거부한다 — 설정(package.json·lockfile·tsconfig·eslint·turbo·prettier 등), 공통 lint
-# 규칙(packages/eslint-config), CI·도구(.github·.claude·lefthook·renovate), 에이전트가 따르는 규칙(AGENTS.md와 docs/adr의 결정
+# 규칙(packages/guardrails), CI·도구(.github·.claude·lefthook·renovate), 에이전트가 따르는 규칙(AGENTS.md와 docs/adr의 결정
 # 기록 — 자동 수정 프롬프트가 "이 지시보다 우선한다"며 읽는다). 규칙을 풀어 CI를 초록으로 만드는 길을 막고, 새로 생기는
 # 설정 파일도 목록에 없으니 그대로 막힌다. 설정·규칙을 꼭 바꿔야 하는 실패는 사람이 고친다(멘션이 간다).
 # 경로를 읽을 수 없는 머리(ASCII 밖의 문자가 들어 git이 따옴표로 감싼 경로)도 거부한다 — 읽지 못한 경로가 검사를 건너뛰지 않게.

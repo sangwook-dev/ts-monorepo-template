@@ -1,4 +1,4 @@
-import { base, layers } from '@app/eslint-config';
+import { base, layers } from 'lint-guardrails';
 import { defineConfig } from 'eslint/config';
 
 // 저장소 도구 — 파일 시스템·레지스트리를 읽는 Node 전용 코드다.

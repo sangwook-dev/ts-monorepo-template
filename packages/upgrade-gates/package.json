@@ -18,7 +18,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@app/eslint-config": "workspace:*",
+    "lint-guardrails": "workspace:*",
     "@app/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "@types/semver": "^7.7.1",

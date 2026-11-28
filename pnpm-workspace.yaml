@@ -16,7 +16,8 @@ allowBuilds:
 # 'catalog:'(기본) 또는 'catalog:<이름>'만 적고 숫자는 이 파일에만 둔다.
 # named catalog는 분류가 아니라 **한 번호로 함께 움직여야 하는 묶음**에만 쓴다.
 # pnpm의 minimumReleaseAge(갓 나온 릴리스 설치 보류)를 예외로 풀지 않는다 — 막히면 그 직전
-# 버전으로 적는다(공급망 보수 원칙). minimumReleaseAgeExclude가 자동으로 생기면 지우고 버전을 낮춘다.
+# 버전으로 적는다(공급망 보수 원칙). minimumReleaseAgeExclude가 자동으로 생기면 지우고 버전을 낮춘다 — 예외는 아래에 적은
+# 우리 패키지 lint-guardrails 하나다(ADR 0021).
 catalog:
   # 언어 — 올릴 수 있는 상한은 upgrade-gates.json이 정한다(Renovate가 따른다).
   typescript: 6.0.3
@@ -43,6 +44,11 @@ catalogs:
     '@eslint-community/eslint-plugin-eslint-comments': ^4.8.1
     # ESLint가 eslint.config.mts를 읽을 때 쓰는 TS 로더
     jiti: ^2.7.0
+
+# 우리가 템플릿 main에서 provenance와 함께 배포하는 공유 lint 규칙(ADR 0021)만 갓 나온 판도 받는다 — init이 그때의 판을
+# 정확히 적어 넣으므로, 막으면 배포 직후 하루 동안 템플릿으로 저장소를 만들 수 없다.
+minimumReleaseAgeExclude:
+  - lint-guardrails
 
 # 전이 의존성 보안 패치. 의존하는 쪽(eslint, @eslint/config-array, @typescript-eslint/typescript-estree)이
 # minimatch를 ^10으로 묶어 범위 안에서는 패치(>=11.0.1, GHSA-g3hv-75wg-m249)를 받을 수 없다.

@@ -9,7 +9,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { layers, moduleFolderProblems, repoRootFrom } from '@app/eslint-config';
+import { layers, moduleFolderProblems, repoRootFrom } from 'lint-guardrails';
 import { ESLint } from 'eslint';
 import { afterAll, describe, expect, it, vi } from 'vitest';
 
@@ -614,7 +614,7 @@ describe('타입 정보를 쓰는 규칙', () => {
 describe('설정을 쓰는 저장소의 루트', () => {
   const made: string[] = [];
   function tempRepo(files: readonly string[]): string {
-    const dir = mkdtempSync(path.join(tmpdir(), 'eslint-config-root-'));
+    const dir = mkdtempSync(path.join(tmpdir(), 'guardrails-root-'));
     made.push(dir);
     for (const file of files) {
       mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });

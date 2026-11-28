@@ -31,7 +31,7 @@ status: accepted
   파싱 오류로 실패한다.
 - 도메인의 `noTopLevelEffects`(ADR 0011)는 본문 없는 함수 선언을 계속 허용 선언으로 둔다. 부작용이 없는 선언이라 그 규칙의 판단으로는
   맞고, 이 결정의 예외를 연 경우에만 닿는다.
-- 가드 테스트(`packages/eslint-config/guards.test.mts`)가 꼴마다 막히는지, 테스트 파일에서도 막히는지, 선언 파일이 타입만 담아도
+- 가드 테스트(`lint-guardrails`의 `guards.test.mts`)가 꼴마다 막히는지, 테스트 파일에서도 막히는지, 선언 파일이 타입만 담아도
   확장자를 바꿔도(`.d.mts`·`.d.cts`·`.d.css.ts`) 막히는지, 타입만인 보강·abstract 메서드·호출 시그니처가 통과하는지(양성 대조)를 본다.
 - lint가 못 보는 것 — 규칙으로만 남기고 리뷰에서 본다.
   - 타입만인 보강이 이미 있는 값에 없는 멤버를 더하는 것. `declare global { interface String { toTask(): Task } }`를 두면
